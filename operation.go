@@ -73,6 +73,10 @@ func (operation *Operation) ParseComment(comment string, astFile *ast.File) erro
 		if err := operation.ParseParamComment(lineRemainder, astFile); err != nil {
 			return err
 		}
+	case "@params":
+		if err := operation.ParseParamsComment(lineRemainder, astFile); err != nil {
+			return err
+		}
 	case "@success", "@failure":
 		if err := operation.ParseResponseComment(lineRemainder, astFile); err != nil {
 			if err := operation.ParseEmptyResponseComment(lineRemainder); err != nil {
@@ -162,6 +166,63 @@ func (operation *Operation) ParseParamComment(commentLine string, astFile *ast.F
 	case "formData":
 		param = createParameter(paramType, description, name, TransToValidSchemeType(schemaType), required)
 	}
+	param = operation.parseAndExtractionParamAttribute(commentLine, schemaType, param)
+	operation.Operation.Parameters = append(operation.Operation.Parameters, param)
+	return nil
+}
+
+// ParseParamComment parses params return []string of param properties
+// @Param	queryText		form	      string	  true		        "The email for login"
+// 			[param name]    [paramType] [data type]  [is mandatory?]   [Comment]
+// @Param   some_id     path    int     true        "Some ID"
+func (operation *Operation) ParseParamsComment(commentLine string, astFile *ast.File) error {
+	re := regexp.MustCompile(`([\S.]+)[\s]+([\w]+)`)
+	m := re.FindStringSubmatch(commentLine)
+
+	if len(m) == 0 {
+		return fmt.Errorf("can not parse param comment \"%s\"", commentLine)
+	}
+	paramType := strings.Split(m[0], " ")[1]
+	schemaType := m[1]
+	var param spec.Parameter
+
+	// TODO: this snippets have to extract out
+	refSplit := strings.Split(schemaType, ".")
+	if len(refSplit) == 2 {
+		pkgName := refSplit[0]
+		typeName := refSplit[1]
+		if typeSpec, ok := operation.parser.TypeDefinitions[pkgName][typeName]; ok {
+
+			structDecl := typeSpec.Type.(*ast.StructType)
+
+			for _, field := range structDecl.Fields.List {
+				// get swagger info
+				required := strings.Contains(field.Tag.Value, "required")
+				tag := strings.Split(
+					strings.Replace(strings.Replace(field.Tag.Value, "`", ``, -1), `"`, ``, -1),
+					`swagger:`)
+
+				description := ""
+				if len(tag) >= 2 {
+					swTag := strings.Split(tag[1], "|")
+					description = strings.Join(swTag[:len(swTag)-1], "")
+				}
+				// get field name from tag
+				fieldName := field.Names[0].Name
+				fieldName = strings.Replace(tag[0], "schema:", "", -1)
+				fieldName = strings.Replace(fieldName, ",", "", -1)
+				fieldName = strings.TrimSpace(strings.Replace(fieldName, "required", "", -1))
+
+				param = createParameter(paramType, description, fieldName, fmt.Sprintf("%s", field.Type), required)
+
+				if len(tag) >= 2 {
+					param = operation.parseAndExtractionParamAttribute(field.Tag.Value, fmt.Sprintf("%s", field.Type), param)
+				}
+				operation.Operation.Parameters = append(operation.Operation.Parameters, param)
+			}
+		}
+	}
+
 	param = operation.parseAndExtractionParamAttribute(commentLine, schemaType, param)
 	operation.Operation.Parameters = append(operation.Operation.Parameters, param)
 	return nil
