@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/pkg/errors"
-	"github.com/swaggo/swag"
-	"github.com/swaggo/swag/gen"
+	"github.com/temorfeouz/swag"
+	"github.com/temorfeouz/swag/gen"
 	"github.com/urfave/cli"
 )
 

@@ -19,7 +19,7 @@ import (
 )
 
 // Operation describes a single API operation on a path.
-// For more information: https://github.com/swaggo/swag#api-operation
+// For more information: https://github.com/temorfeouz/swag#api-operation
 type Operation struct {
 	HTTPMethod string
 	Path       string
@@ -178,7 +178,8 @@ func (operation *Operation) ParseParamComment(commentLine string, astFile *ast.F
 func (operation *Operation) ParseParamsComment(commentLine string, astFile *ast.File) error {
 	re := regexp.MustCompile(`([\S.]+)[\s]+([\w]+)`)
 	m := re.FindStringSubmatch(commentLine)
-
+	fmt.Printf("--%+v--\r\n", "")
+	os.Exit(1)
 	if len(m) == 0 {
 		return fmt.Errorf("can not parse param comment \"%s\"", commentLine)
 	}
@@ -212,6 +213,8 @@ func (operation *Operation) ParseParamsComment(commentLine string, astFile *ast.
 				fieldName = strings.Replace(tag[0], "schema:", "", -1)
 				fieldName = strings.Replace(fieldName, ",", "", -1)
 				fieldName = strings.TrimSpace(strings.Replace(fieldName, "required", "", -1))
+
+				fmt.Printf("--%+v--\r\n", field.Type)
 
 				param = createParameter(paramType, description, fieldName, fmt.Sprintf("%s", field.Type), required)
 
