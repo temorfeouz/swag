@@ -1,7 +1,7 @@
 # swag
 
 <p align="center">
-    <img alt="swaggo" src="https://raw.githubusercontent.com/temorfeouz/swag/master/assets/swaggo.png" width="200">
+    <img alt="swaggo" src="https://raw.githubusercontent.com/swaggo/swag/master/assets/swaggo.png" width="200">
 </p>
 
 <p align="center">
@@ -9,11 +9,11 @@
 </p>
 
 <p align="center">
-  <a href="https://travis-ci.org/temorfeouz/swag"><img alt="Travis Status" src="https://img.shields.io/travis/temorfeouz/swag/master.svg"></a>
-  <a href="https://codecov.io/gh/temorfeouz/swag"><img alt="Coverage Status" src="https://img.shields.io/codecov/c/github/temorfeouz/swag/master.svg"></a>
-  <a href="https://goreportcard.com/badge/github.com/temorfeouz/swag"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/temorfeouz/swag"></a>
+  <a href="https://travis-ci.org/swaggo/swag"><img alt="Travis Status" src="https://img.shields.io/travis/swaggo/swag/master.svg"></a>
+  <a href="https://codecov.io/gh/swaggo/swag"><img alt="Coverage Status" src="https://img.shields.io/codecov/c/github/swaggo/swag/master.svg"></a>
+  <a href="https://goreportcard.com/badge/github.com/swaggo/swag"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/swaggo/swag"></a>
   <a href="https://codebeat.co/projects/github-com-swaggo-swag-master"><img alt="codebeat badge" src="https://codebeat.co/badges/71e2f5e5-9e6b-405d-baf9-7cc8b5037330" /></a>
-  <a href="https://godoc.org/github.com/temorfeouz/swag"><img alt="Go Doc" src="https://godoc.org/github.com/temorfeouz/swagg?status.svg"></a>
+  <a href="https://godoc.org/github.com/swaggo/swag"><img alt="Go Doc" src="https://godoc.org/github.com/swaggo/swagg?status.svg"></a>
 </p>
 
 <p align="center">gopher image source is <a href="https://github.com/tenntenn/gopher-stickers">tenntenn/gopher-stickers.</a> It has licenses <a href="http://creativecommons.org/licenses/by/3.0/deed.en">creative commons licensing.</a></p>
@@ -183,7 +183,7 @@ func main() {
 	docs.SwaggerInfo.BasePath = "/v2"
 
 	r := gin.New()
-    
+
 	// use ginSwagger middleware to serve the API docs
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -202,8 +202,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/temorfeouz/swag/example/celler/httputil"
-	"github.com/temorfeouz/swag/example/celler/model"
+	"github.com/swaggo/swag/example/celler/httputil"
+	"github.com/swaggo/swag/example/celler/model"
 )
 
 // ShowAccount godoc
@@ -306,6 +306,8 @@ OPTIONS:
 
 **Example**  
 [celler/main.go](https://github.com/temorfeouz/swag/blob/master/example/celler/main.go)
+**Example**
+[celler/main.go](https://github.com/swaggo/swag/blob/master/example/celler/main.go)
 
 | annotation         | description                                                                                     | example                                                         |
 |--------------------|-------------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
@@ -343,8 +345,8 @@ OPTIONS:
 
 # API Operation
 
-**Example**  
-[celler/controller](https://github.com/temorfeouz/swag/tree/master/example/celler/controller)
+**Example**
+[celler/controller](https://github.com/swaggo/swag/tree/master/example/celler/controller)
 
 
 | annotation         | description                                                                                                                |
@@ -432,6 +434,16 @@ Make it AND condition
 // @Param default query string false "string default" default(A)
 ```
 
+It also works for the struct fields:
+
+```go
+type Foo struct {
+    Bar string `minLength:"4" maxLength:"16"`
+    Baz int `minimum:"10" maximum:"20" default:"15"`
+    Qux []string `enums:"foo,bar,baz"`
+}
+```
+
 ### Available
 
 Field Name | Type | Description
@@ -498,6 +510,18 @@ type Account struct {
 type Account struct {
     // ID this is userid
     ID   int    `json:"id"
+}
+```
+
+### Override swagger type of a struct field
+
+```go
+type Account struct {
+    // Override primitive type by simply specifying it via `swaggertype` tag
+    ID     sql.NullInt64 `json:"id" swaggertype:"integer"
+
+    // Array types can be overridden using "array,<prim_type>" format
+    Coeffs []big.Float `json:"coeffs" swaggertype:"array,number"
 }
 ```
 

@@ -314,6 +314,12 @@ var doc = `{
                         }
                     }
                 },
+                "coeffs": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
                 "custom_string": {
                     "type": "string"
                 },
@@ -341,6 +347,9 @@ var doc = `{
                 "name": {
                     "type": "string",
                     "example": "poti"
+                },
+                "null_int": {
+                    "type": "integer"
                 },
                 "pets": {
                     "type": "array",

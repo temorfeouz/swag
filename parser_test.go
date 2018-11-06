@@ -524,6 +524,8 @@ func TestParseSimpleApi(t *testing.T) {
                                 },
                                 "name": {
                                     "type": "string",
+                                    "maxLength": 16,
+                                    "minLength": 4,
                                     "example": "detail_category_name"
                                 },
                                 "photo_urls": {
@@ -546,6 +548,19 @@ func TestParseSimpleApi(t *testing.T) {
                 "decimal": {
                     "type": "number"
                 },
+                "enum_array": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            5,
+                            7
+                        ]
+                    }
+                },
                 "id": {
                     "type": "integer",
                     "format": "int64",
@@ -563,6 +578,7 @@ func TestParseSimpleApi(t *testing.T) {
                 },
                 "is_alive": {
                     "type": "boolean",
+                    "default": true,
                     "example": true
                 },
                 "name": {
@@ -593,10 +609,16 @@ func TestParseSimpleApi(t *testing.T) {
                 },
                 "price": {
                     "type": "number",
+                    "maximum": 1000,
+                    "minimum": 1,
                     "example": 3.25
                 },
                 "status": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "healthy",
+                        "ill"
+                    ]
                 },
                 "tags": {
                     "type": "array",
@@ -1027,6 +1049,12 @@ func TestParseSimpleApi_ForSnakecase(t *testing.T) {
                         }
                     }
                 },
+                "coeffs": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
                 "custom_string": {
                     "type": "string"
                 },
@@ -1054,6 +1082,9 @@ func TestParseSimpleApi_ForSnakecase(t *testing.T) {
                 "name": {
                     "type": "string",
                     "example": "poti"
+                },
+                "null_int": {
+                    "type": "integer"
                 },
                 "pets": {
                     "type": "array",
