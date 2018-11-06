@@ -73,6 +73,10 @@ func (operation *Operation) ParseComment(comment string, astFile *ast.File) erro
 		if err := operation.ParseParamComment(lineRemainder, astFile); err != nil {
 			return err
 		}
+	case "@auth":
+		if err := operation.ParseAuthComment(lineRemainder, astFile); err != nil {
+			return err
+		}
 	case "@params":
 		if err := operation.ParseParamsComment(lineRemainder, astFile); err != nil {
 			return err
@@ -95,6 +99,23 @@ func (operation *Operation) ParseComment(comment string, astFile *ast.File) erro
 			return err
 		}
 	}
+	return nil
+}
+
+// ParseParamComment parses params return []string of param properties
+// @Param	queryText		form	      string	  true		        "The email for login"
+// 			[param name]    [paramType] [data type]  [is mandatory?]   [Comment]
+// @Param   some_id     path    int     true        "Some ID"
+func (operation *Operation) ParseAuthComment(commentLine string, astFile *ast.File) error {
+
+	if commentLine == "true" || commentLine == "required" {
+		for _, v := range operation.parser.AuthProp {
+			if err := operation.ParseParamComment(v, nil); err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -204,7 +225,7 @@ func (operation *Operation) ParseParamsComment(commentLine string, astFile *ast.
 				description := ""
 				if len(tag) >= 2 {
 					swTag := strings.Split(tag[1], "|")
-					description = strings.Join(swTag[:len(swTag)-1], "")
+					description = swTag[0]
 				}
 				// get field name from tag
 				fieldName := field.Names[0].Name
@@ -225,23 +246,10 @@ func (operation *Operation) ParseParamsComment(commentLine string, astFile *ast.
 				if len(tag) >= 2 {
 					param = operation.parseAndExtractionParamAttribute(field.Tag.Value, t, param)
 				}
-
-				//isContain := false
-				//for _, v := range operation.Operation.Parameters {
-				//	if v.Name == fieldName {
-				//		isContain = true
-				//		break
-				//	}
-				//}
-				//if !isContain {
 				operation.Operation.Parameters = append(operation.Operation.Parameters, param)
-				//}
 			}
 		}
 	}
-
-	//param = operation.parseAndExtractionParamAttribute(commentLine, schemaType, param)
-	//operation.Operation.Parameters = append(operation.Operation.Parameters, param)
 	return nil
 }
 

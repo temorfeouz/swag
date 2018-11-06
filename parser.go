@@ -50,6 +50,7 @@ type Parser struct {
 	registerTypes map[string]*ast.TypeSpec
 
 	PropNamingStrategy string
+	AuthProp           []string
 }
 
 // New creates a new Parser with default properties.
@@ -73,6 +74,7 @@ func New() *Parser {
 		TypeDefinitions:      make(map[string]map[string]*ast.TypeSpec),
 		CustomPrimitiveTypes: make(map[string]string),
 		registerTypes:        make(map[string]*ast.TypeSpec),
+		AuthProp:             make([]string, 0, 2),
 	}
 	return parser
 }
@@ -122,6 +124,8 @@ func (parser *Parser) ParseGeneralAPIInfo(mainAPIFile string) error {
 			for _, commentLine := range comments {
 				attribute := strings.ToLower(strings.Split(commentLine, " ")[0])
 				switch attribute {
+				case "@auth.prop":
+					parser.AuthProp = append(parser.AuthProp, strings.TrimSpace(commentLine[len(attribute):]))
 				case "@version":
 					parser.swagger.Info.Version = strings.TrimSpace(commentLine[len(attribute):])
 				case "@title":
