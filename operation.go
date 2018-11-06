@@ -178,8 +178,6 @@ func (operation *Operation) ParseParamComment(commentLine string, astFile *ast.F
 func (operation *Operation) ParseParamsComment(commentLine string, astFile *ast.File) error {
 	re := regexp.MustCompile(`([\S.]+)[\s]+([\w]+)`)
 	m := re.FindStringSubmatch(commentLine)
-	fmt.Printf("--%+v--\r\n", "")
-	os.Exit(1)
 	if len(m) == 0 {
 		return fmt.Errorf("can not parse param comment \"%s\"", commentLine)
 	}
@@ -214,12 +212,18 @@ func (operation *Operation) ParseParamsComment(commentLine string, astFile *ast.
 				fieldName = strings.Replace(fieldName, ",", "", -1)
 				fieldName = strings.TrimSpace(strings.Replace(fieldName, "required", "", -1))
 
-				fmt.Printf("--%+v--\r\n", field.Type)
+				t := ""
+				switch d := field.Type.(type) {
+				case *ast.ArrayType:
+					t = "string"
+				default:
+					t = fmt.Sprintf("%s", d)
+				}
 
-				param = createParameter(paramType, description, fieldName, fmt.Sprintf("%s", field.Type), required)
+				param = createParameter(paramType, description, fieldName, t, required)
 
 				if len(tag) >= 2 {
-					param = operation.parseAndExtractionParamAttribute(field.Tag.Value, fmt.Sprintf("%s", field.Type), param)
+					param = operation.parseAndExtractionParamAttribute(field.Tag.Value, t, param)
 				}
 				operation.Operation.Parameters = append(operation.Operation.Parameters, param)
 			}
