@@ -220,18 +220,28 @@ func (operation *Operation) ParseParamsComment(commentLine string, astFile *ast.
 					t = fmt.Sprintf("%s", d)
 				}
 
-				param = createParameter(paramType, description, fieldName, t, required)
+				param = createParameter(paramType, description, fieldName, TransToValidSchemeType(t), required)
 
 				if len(tag) >= 2 {
 					param = operation.parseAndExtractionParamAttribute(field.Tag.Value, t, param)
 				}
+
+				//isContain := false
+				//for _, v := range operation.Operation.Parameters {
+				//	if v.Name == fieldName {
+				//		isContain = true
+				//		break
+				//	}
+				//}
+				//if !isContain {
 				operation.Operation.Parameters = append(operation.Operation.Parameters, param)
+				//}
 			}
 		}
 	}
 
-	param = operation.parseAndExtractionParamAttribute(commentLine, schemaType, param)
-	operation.Operation.Parameters = append(operation.Operation.Parameters, param)
+	//param = operation.parseAndExtractionParamAttribute(commentLine, schemaType, param)
+	//operation.Operation.Parameters = append(operation.Operation.Parameters, param)
 	return nil
 }
 
