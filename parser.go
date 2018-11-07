@@ -473,46 +473,47 @@ func (parser *Parser) parseTypeSpec(pkgName string, typeSpec *ast.TypeSpec, prop
 				//}}
 				structField := parser.parseField(field)
 
-				inner := spec.Schema{
-					SchemaProps: spec.SchemaProps{
-						Type: []string{structField.schemaType},
-						Items: &spec.SchemaOrArray{
-							Schema: &spec.Schema{},
-						},
-					},
-				}
+				//inner := spec.Schema{
+				//	SchemaProps: spec.SchemaProps{
+				//		Type: []string{structField.schemaType},
+				//		//Items: &spec.SchemaOrArray{
+				//		//	Schema: &spec.Schema{},
+				//		//},
+				//	},
+				//}
 				outer := spec.Schema{
 					SchemaProps: spec.SchemaProps{
-						Type: []string{structField.schemaType},
+						Type: []string{"array"},
 						Items: &spec.SchemaOrArray{
-							Schema: &spec.Schema{},
+							Schema: &spec.Schema{
+								SchemaProps: spec.SchemaProps{
+									Type: []string{structField.schemaType},
+									//Items: &spec.SchemaOrArray{
+									//	Schema: &spec.Schema{},
+									//},
+									Properties: map[string]spec.Schema{
+										"USD": spec.Schema{
+											SchemaProps: spec.SchemaProps{Type: []string{structField.schemaType},
+												Properties: map[string]spec.Schema{},
+											},
+										},
+									},
+								},
+							},
 						},
 					},
 				}
-				_ = outer
+				//outer.Properties = make(map[string]spec.Schema)
+
 				for _, vv := range baseTypeSpec.Type.(*ast.StructType).Fields.List {
 					props := parser.parseStruct(pkgName, vv)
 					for k, v := range props {
-						if inner.Properties == nil {
-							inner.Properties = make(map[string]spec.Schema)
-						}
-						inner.Properties[k] = v
+						outer.Items.Schema.Properties["USD"].Properties[k] = v
 					}
 				}
-				//outer.Properties["USD"].Items = &inner
-				properties[getAllBetween(field.Tag.Value, `"`, `"`)] = inner
 
-			//	&spec.Schema{
-			//		SchemaProps: spec.SchemaProps{
-			//			Type: []string{structField.schemaType},
-			//			Items: &spec.SchemaOrArray{
-			//				Schema: &spec.Schema{
-			//					SchemaProps: spec.SchemaProps{},
-			//				},
-			//			},
-			//		},
-			//	},
-			//},
+				properties[getAllBetween(field.Tag.Value, `"`, `"`)] = outer
+
 			default:
 				if field.Names == nil { //anonymous field
 					parser.parseAnonymousField(pkgName, field, properties)
