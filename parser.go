@@ -16,6 +16,8 @@ import (
 	"strings"
 	"unicode"
 
+	"regexp"
+
 	"github.com/go-openapi/jsonreference"
 	"github.com/go-openapi/spec"
 	"github.com/pkg/errors"
@@ -433,6 +435,7 @@ func (parser *Parser) ParseDefinition(pkgName string, typeSpec *ast.TypeSpec, ty
 			tspec := parser.TypeDefinitions[pkgName][tname]
 			parser.ParseDefinition(pkgName, tspec, tname)
 		}
+
 		if tname != "object" {
 			requiredFields = append(requiredFields, prop.SchemaProps.Required...)
 			prop.SchemaProps.Required = make([]string, 0)
@@ -440,6 +443,7 @@ func (parser *Parser) ParseDefinition(pkgName string, typeSpec *ast.TypeSpec, ty
 		properties[k] = prop
 	}
 	log.Println("Generating " + refTypeName)
+
 	parser.swagger.Definitions[refTypeName] = spec.Schema{
 		SchemaProps: spec.SchemaProps{
 			Type:       []string{"object"},
@@ -450,18 +454,74 @@ func (parser *Parser) ParseDefinition(pkgName string, typeSpec *ast.TypeSpec, ty
 }
 
 func (parser *Parser) parseTypeSpec(pkgName string, typeSpec *ast.TypeSpec, properties map[string]spec.Schema) {
+
 	switch typeSpec.Type.(type) {
 	case *ast.StructType:
 		structDecl := typeSpec.Type.(*ast.StructType)
 		fields := structDecl.Fields.List
 
 		for _, field := range fields {
-			if field.Names == nil { //anonymous field
-				parser.parseAnonymousField(pkgName, field, properties)
-			} else {
-				props := parser.parseStruct(pkgName, field)
-				for k, v := range props {
-					properties[k] = v
+			//if "Data" == fmt.Sprintf("%s", field.Names[0]) {
+			//fmt.Printf("--%+v--\r\n", pkgName)
+			//fmt.Printf("--%+v--\r\n", field.Type.(*ast.MapType).Value)
+			switch field.Type.(type) {
+			case *ast.MapType:
+				baseTypeSpec := parser.TypeDefinitions[pkgName][fmt.Sprintf("%s", field.Type.(*ast.MapType).Value)]
+
+				//s := spec.Schema{SchemaProps: spec.SchemaProps{
+				//	Type: spec.StringOrArray{"array"},
+				//}}
+				structField := parser.parseField(field)
+
+				inner := spec.Schema{
+					SchemaProps: spec.SchemaProps{
+						Type: []string{structField.schemaType},
+						Items: &spec.SchemaOrArray{
+							Schema: &spec.Schema{},
+						},
+					},
+				}
+				outer := spec.Schema{
+					SchemaProps: spec.SchemaProps{
+						Type: []string{structField.schemaType},
+						Items: &spec.SchemaOrArray{
+							Schema: &spec.Schema{},
+						},
+					},
+				}
+				_ = outer
+				for _, vv := range baseTypeSpec.Type.(*ast.StructType).Fields.List {
+					props := parser.parseStruct(pkgName, vv)
+					for k, v := range props {
+						if inner.Properties == nil {
+							inner.Properties = make(map[string]spec.Schema)
+						}
+						inner.Properties[k] = v
+					}
+				}
+				//outer.Properties["USD"].Items = &inner
+				properties[getAllBetween(field.Tag.Value, `"`, `"`)] = inner
+
+			//	&spec.Schema{
+			//		SchemaProps: spec.SchemaProps{
+			//			Type: []string{structField.schemaType},
+			//			Items: &spec.SchemaOrArray{
+			//				Schema: &spec.Schema{
+			//					SchemaProps: spec.SchemaProps{},
+			//				},
+			//			},
+			//		},
+			//	},
+			//},
+			default:
+				if field.Names == nil { //anonymous field
+					parser.parseAnonymousField(pkgName, field, properties)
+				} else {
+					props := parser.parseStruct(pkgName, field)
+					//fmt.Printf("--%+v--\r\n", field)
+					for k, v := range props {
+						properties[k] = v
+					}
 				}
 			}
 		}
@@ -473,6 +533,18 @@ func (parser *Parser) parseTypeSpec(pkgName string, typeSpec *ast.TypeSpec, prop
 	case *ast.MapType:
 		log.Println("ParseDefinitions not supported 'Map' yet.")
 	}
+}
+func getAllBetween(str string, start string, end string) string {
+	reg := `\` + start + `(.*?)\` + end
+	r, err := regexp.Compile(reg)
+	if err != nil {
+		panic(err)
+	}
+	t := r.FindStringSubmatch(str)
+	if len(t) >= 1 {
+		return t[1]
+	}
+	return ""
 }
 
 type structField struct {
