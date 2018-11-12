@@ -492,7 +492,7 @@ func (parser *Parser) parseTypeSpec(pkgName string, typeSpec *ast.TypeSpec, prop
 									//	Schema: &spec.Schema{},
 									//},
 									Properties: map[string]spec.Schema{
-										"USD": spec.Schema{
+										"string": spec.Schema{
 											SchemaProps: spec.SchemaProps{Type: []string{structField.schemaType},
 												Properties: map[string]spec.Schema{},
 											},
@@ -508,7 +508,7 @@ func (parser *Parser) parseTypeSpec(pkgName string, typeSpec *ast.TypeSpec, prop
 				for _, vv := range baseTypeSpec.Type.(*ast.StructType).Fields.List {
 					props := parser.parseStruct(pkgName, vv)
 					for k, v := range props {
-						outer.Items.Schema.Properties["USD"].Properties[k] = v
+						outer.Items.Schema.Properties["string"].Properties[k] = v
 					}
 				}
 
