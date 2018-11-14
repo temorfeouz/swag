@@ -504,7 +504,10 @@ func (parser *Parser) parseTypeSpec(pkgName string, typeSpec *ast.TypeSpec, prop
 					},
 				}
 				//outer.Properties = make(map[string]spec.Schema)
-
+				if baseTypeSpec == nil {
+					// TODO here nil because this inner type is map. Need correct processing of nested maps
+					continue
+				}
 				for _, vv := range baseTypeSpec.Type.(*ast.StructType).Fields.List {
 					props := parser.parseStruct(pkgName, vv)
 					for k, v := range props {
