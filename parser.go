@@ -455,7 +455,7 @@ func (parser *Parser) ParseDefinition(pkgName string, typeSpec *ast.TypeSpec, ty
 
 func (parser *Parser) parseTypeSpec(pkgName string, typeSpec *ast.TypeSpec, properties map[string]spec.Schema) {
 
-	switch typeSpec.Type.(type) {
+	switch t := typeSpec.Type.(type) {
 	case *ast.StructType:
 		structDecl := typeSpec.Type.(*ast.StructType)
 		fields := structDecl.Fields.List
@@ -557,9 +557,72 @@ func (parser *Parser) parseTypeSpec(pkgName string, typeSpec *ast.TypeSpec, prop
 	case *ast.InterfaceType:
 		log.Println("ParseDefinitions not supported 'Interface' yet.")
 	case *ast.MapType:
-		log.Println("ParseDefinitions not supported 'Map' yet.")
+		//structDecl := typeSpec.Type.(*ast.MapType)
+		baseTypeSpec := parser.TypeDefinitions[pkgName][fmt.Sprintf("%s", t.Value)]
+		if baseTypeSpec == nil {
+			return
+		}
+		parser.parseMap(pkgName, baseTypeSpec, properties)
+
+		//fmt.Printf("--%+v--\r\n", baseTypeSpec.Type)
+		//os.Exit(1)
+
+		//structField := parser.parseField(t)
+		//fmt.Printf("--%+v--\r\n", baseTypeSpec)
+		//fmt.Printf("--%+v--\r\n", structField)
+		//os.Exit(1)
+		//log.Println(fmt.Sprintf("ParseDefinitions not supported 'Map' yet. '%s'"))
+
 	}
 }
+
+func (parser *Parser) parseMap(pkgName string, baseTypeSpec *ast.TypeSpec, properties map[string]spec.Schema) {
+	switch mapt := baseTypeSpec.Type.(type) {
+	case *ast.MapType:
+		//parseMap(baseTypeSpec, properties)
+		b := parser.TypeDefinitions[pkgName][fmt.Sprintf("%s", mapt.Value)]
+
+		switch str := b.Type.(type) {
+		case *ast.StructType:
+			for _, vv := range str.Fields.List {
+				//fmt.Printf("--%+v--\r\n", vv.Names[0].Name)
+				//schema := spec.Schema{
+				//	SchemaProps: spec.SchemaProps{
+				//		Type:       []string{"object"},
+				//		Properties: map[string]spec.Schema{},
+				//		Items:      &spec.SchemaOrArray{},
+				//	},
+				//}
+				props := parser.parseStruct(pkgName, vv)
+				for k, v := range props {
+					//fmt.Printf("--%+v--\r\n", v)
+					//parser.ParseDefinition(pkgName, parser.TypeDefinitions[pkgName][k], k)
+					properties[k] = v
+					//outer.Items.Schema.Properties["string"].Properties[k] = v
+				}
+				//properties[vv.Names[0].Name] = props
+			}
+		default:
+			fmt.Printf("--%+v--\r\n", "!!!!!")
+			os.Exit(1)
+		}
+
+		//structField := parser.parseField(mapt)
+	//case *ast.StructType:
+	//	for _, vv := range baseTypeSpec.Type.(*ast.StructType).Fields.List {
+	//		props := parser.parseStruct(pkgName, vv)
+	//		for k, v := range props {
+	//			fmt.Printf("--%+v:%+v--\r\n", k, v)
+	//			//outer.Items.Schema.Properties["string"].Properties[k] = v
+	//		}
+	//	}
+	default:
+		fmt.Printf("--%+T--\r\n", baseTypeSpec)
+		fmt.Printf("--%+v--\r\n", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+		os.Exit(1)
+	}
+}
+
 func getAllBetween(str string, start string, end string) string {
 	reg := `\` + start + `(.*?)\` + end
 	r, err := regexp.Compile(reg)

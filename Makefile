@@ -50,3 +50,5 @@ runref:
 
 runarr:
 	go run cmd/swag/main.go init -d testdata/not_simple/arrays -s testdata/not_simple/arrays
+runmap:
+	go run cmd/swag/main.go init -d testdata/not_simple/maps -s testdata/not_simple/maps
