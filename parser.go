@@ -461,26 +461,11 @@ func (parser *Parser) parseTypeSpec(pkgName string, typeSpec *ast.TypeSpec, prop
 		fields := structDecl.Fields.List
 
 		for _, field := range fields {
-			//if "Data" == fmt.Sprintf("%s", field.Names[0]) {
-			//fmt.Printf("--%+v--\r\n", pkgName)
-			//fmt.Printf("--%+v--\r\n", field.Type.(*ast.MapType).Value)
 			switch field.Type.(type) {
 			case *ast.MapType:
 				baseTypeSpec := parser.TypeDefinitions[pkgName][fmt.Sprintf("%s", field.Type.(*ast.MapType).Value)]
 
-				//s := spec.Schema{SchemaProps: spec.SchemaProps{
-				//	Type: spec.StringOrArray{"array"},
-				//}}
 				structField := parser.parseField(field)
-
-				//inner := spec.Schema{
-				//	SchemaProps: spec.SchemaProps{
-				//		Type: []string{structField.schemaType},
-				//		//Items: &spec.SchemaOrArray{
-				//		//	Schema: &spec.Schema{},
-				//		//},
-				//	},
-				//}
 				outer := spec.Schema{
 					SchemaProps: spec.SchemaProps{
 						Type: []string{"array"},
@@ -488,11 +473,8 @@ func (parser *Parser) parseTypeSpec(pkgName string, typeSpec *ast.TypeSpec, prop
 							Schema: &spec.Schema{
 								SchemaProps: spec.SchemaProps{
 									Type: []string{structField.schemaType},
-									//Items: &spec.SchemaOrArray{
-									//	Schema: &spec.Schema{},
-									//},
 									Properties: map[string]spec.Schema{
-										"string": spec.Schema{
+										"string": {
 											SchemaProps: spec.SchemaProps{Type: []string{structField.schemaType},
 												Properties: map[string]spec.Schema{},
 											},
@@ -503,7 +485,6 @@ func (parser *Parser) parseTypeSpec(pkgName string, typeSpec *ast.TypeSpec, prop
 						},
 					},
 				}
-				//outer.Properties = make(map[string]spec.Schema)
 				if baseTypeSpec == nil {
 					// TODO here nil because this inner type is map. Need correct processing of nested maps
 					continue
@@ -522,7 +503,6 @@ func (parser *Parser) parseTypeSpec(pkgName string, typeSpec *ast.TypeSpec, prop
 					parser.parseAnonymousField(pkgName, field, properties)
 				} else {
 					props := parser.parseStruct(pkgName, field)
-					//fmt.Printf("--%+v--\r\n", field)
 					for k, v := range props {
 						properties[k] = v
 					}
@@ -531,7 +511,49 @@ func (parser *Parser) parseTypeSpec(pkgName string, typeSpec *ast.TypeSpec, prop
 		}
 
 	case *ast.ArrayType:
-		log.Println("ParseDefinitions not supported 'Array' yet.")
+		//structDecl := typeSpec.Type.(*ast.ArrayType)
+
+		if astTypeArray, ok := typeSpec.Type.(*ast.ArrayType); ok { // if array
+			if astTypeArrayExpr, ok := astTypeArray.Elt.(*ast.SelectorExpr); ok {
+				fmt.Printf("1--%+v--\r\n", astTypeArrayExpr)
+				os.Exit(1)
+				//return parseFieldSelectorExpr(astTypeArrayExpr, parser, newArrayProperty)
+			}
+			if astTypeArrayExpr, ok := astTypeArray.Elt.(*ast.StarExpr); ok {
+				if astTypeArraySel, ok := astTypeArrayExpr.X.(*ast.SelectorExpr); ok {
+					fmt.Printf("2--%+v--\r\n", astTypeArraySel)
+					os.Exit(1)
+					//return parseFieldSelectorExpr(astTypeArraySel, parser, newArrayProperty)
+				}
+				if astTypeArrayIdent, ok := astTypeArrayExpr.X.(*ast.Ident); ok {
+					name := TransToValidSchemeType(astTypeArrayIdent.Name)
+					fmt.Printf("3--%+v--\r\n", name)
+					os.Exit(1)
+					//return propertyName{SchemaType: "array", ArrayType: name}
+				}
+			}
+			itemTypeName := TransToValidSchemeType(fmt.Sprintf("%s", astTypeArray.Elt))
+			if actualPrimitiveType, isCustomType := parser.CustomPrimitiveTypes[itemTypeName]; isCustomType {
+				itemTypeName = actualPrimitiveType
+			}
+
+			parser.ParseDefinition(pkgName, parser.TypeDefinitions[pkgName][itemTypeName], itemTypeName)
+			outer := spec.Schema{
+				SchemaProps: spec.SchemaProps{
+					Type: []string{"array"},
+					Items: &spec.SchemaOrArray{
+						Schema: &spec.Schema{
+							SchemaProps: spec.SchemaProps{
+								Ref: spec.Ref{
+									Ref: jsonreference.MustCreateRef("#/definitions/" + pkgName + "." + itemTypeName),
+								},
+							},
+						},
+					},
+				},
+			}
+			properties["array"] = outer // strings.ToLower(itemTypeName)
+		}
 	case *ast.InterfaceType:
 		log.Println("ParseDefinitions not supported 'Interface' yet.")
 	case *ast.MapType:

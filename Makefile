@@ -41,3 +41,12 @@ deps:
 view-covered:
 	$(GOTEST) -coverprofile=cover.out $(TARGET)
 	$(GOCMD) tool cover -html=cover.out
+
+deploy:
+	go build -o ~/go_workspaces/openapi/src/openapi/swag cmd/swag/main.go 
+
+runref:
+	go run cmd/swag/main.go init -d testdata/not_simple/pointer -s testdata/not_simple/pointer
+
+runarr:
+	go run cmd/swag/main.go init -d testdata/not_simple/arrays -s testdata/not_simple/arrays

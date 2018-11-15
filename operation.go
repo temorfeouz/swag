@@ -211,6 +211,7 @@ func (operation *Operation) ParseParamsComment(commentLine string, astFile *ast.
 	if len(refSplit) == 2 {
 		pkgName := refSplit[0]
 		typeName := refSplit[1]
+
 		if typeSpec, ok := operation.parser.TypeDefinitions[pkgName][typeName]; ok {
 
 			structDecl := typeSpec.Type.(*ast.StructType)
@@ -230,6 +231,7 @@ func (operation *Operation) ParseParamsComment(commentLine string, astFile *ast.
 				// get field name from tag
 				fieldName := field.Names[0].Name
 				fieldName = strings.Replace(tag[0], "schema:", "", -1)
+				fieldName = strings.Replace(tag[0], "json:", "", -1)
 				fieldName = strings.Replace(fieldName, ",", "", -1)
 				fieldName = strings.TrimSpace(strings.Replace(fieldName, "required", "", -1))
 
@@ -237,8 +239,24 @@ func (operation *Operation) ParseParamsComment(commentLine string, astFile *ast.
 				switch d := field.Type.(type) {
 				case *ast.ArrayType:
 					t = "string"
+				case *ast.MapType:
+					t = "MAP"
+				case *ast.StructType:
+					t = "STRUCT"
+				case *ast.ChanType:
+					t = "CHAN"
+				case *ast.FuncType:
+					t = "FUNC"
+				case *ast.InterfaceType:
+					t = "INTERFACE"
 				default:
-					t = fmt.Sprintf("%s", d)
+					structDecl, ok := field.Type.(*ast.StarExpr)
+					if ok {
+						t = fmt.Sprintf("%s", structDecl.X) // for pointers
+					} else {
+						t = fmt.Sprintf("%s", d)
+					}
+
 				}
 
 				param = createParameter(paramType, description, fieldName, TransToValidSchemeType(t), required)
