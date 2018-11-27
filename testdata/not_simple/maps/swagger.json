@@ -1,0 +1,133 @@
+{
+    "info": {
+        "contact": {},
+        "license": {}
+    },
+    "paths": {
+        "/some/update": {
+            "post": {
+                "description": "MOCK.",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "merchant"
+                ],
+                "summary": "MOCK.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/response.FeeRate"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "response.CurrencyRate": {
+            "type": "object",
+            "properties": {
+                "limits": {
+                    "type": "object",
+                    "$ref": "#/definitions/response.Limit"
+                },
+                "our_fee": {
+                    "type": "object",
+                    "$ref": "#/definitions/response.FeeRateInfo"
+                },
+                "ps_fee": {
+                    "type": "object",
+                    "$ref": "#/definitions/response.FeeRateInfo"
+                }
+            }
+        },
+        "response.Error": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "object",
+                    "properties": {
+                        "code": {
+                            "type": "integer"
+                        },
+                        "exception": {
+                            "type": "string"
+                        },
+                        "message": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "result": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "response.FeeRate": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "$ref": "#/definitions/response.FeeRateData"
+                },
+                "result": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "response.FeeRateData": {
+            "type": "object",
+            "properties": {
+                "deposit": {
+                    "type": "object",
+                    "$ref": "#/definitions/response.CurrencyRate"
+                },
+                "withdraw": {
+                    "type": "object",
+                    "$ref": "#/definitions/response.CurrencyRate"
+                }
+            }
+        },
+        "response.FeeRateInfo": {
+            "type": "object",
+            "properties": {
+                "max": {
+                    "type": "string"
+                },
+                "min": {
+                    "type": "string"
+                },
+                "percent": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.Limit": {
+            "type": "object",
+            "properties": {
+                "check": {
+                    "type": "string"
+                },
+                "max": {
+                    "type": "string"
+                },
+                "min": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

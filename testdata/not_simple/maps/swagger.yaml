@@ -1,0 +1,87 @@
+definitions:
+  response.CurrencyRate:
+    properties:
+      limits:
+        $ref: '#/definitions/response.Limit'
+        type: object
+      our_fee:
+        $ref: '#/definitions/response.FeeRateInfo'
+        type: object
+      ps_fee:
+        $ref: '#/definitions/response.FeeRateInfo'
+        type: object
+    type: object
+  response.Error:
+    properties:
+      error:
+        properties:
+          code:
+            type: integer
+          exception:
+            type: string
+          message:
+            type: string
+        type: object
+      result:
+        type: boolean
+    type: object
+  response.FeeRate:
+    properties:
+      data:
+        $ref: '#/definitions/response.FeeRateData'
+        type: object
+      result:
+        type: boolean
+    type: object
+  response.FeeRateData:
+    properties:
+      deposit:
+        $ref: '#/definitions/response.CurrencyRate'
+        type: object
+      withdraw:
+        $ref: '#/definitions/response.CurrencyRate'
+        type: object
+    type: object
+  response.FeeRateInfo:
+    properties:
+      max:
+        type: string
+      min:
+        type: string
+      percent:
+        type: string
+    type: object
+  response.Limit:
+    properties:
+      check:
+        type: string
+      max:
+        type: string
+      min:
+        type: string
+    type: object
+info:
+  contact: {}
+  license: {}
+paths:
+  /some/update:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: MOCK.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.FeeRate'
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+            type: object
+      summary: MOCK.
+      tags:
+      - merchant
