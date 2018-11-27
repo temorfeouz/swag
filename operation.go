@@ -231,7 +231,7 @@ func (operation *Operation) ParseParamsComment(commentLine string, astFile *ast.
 				// get field name from tag
 				fieldName := field.Names[0].Name
 				fieldName = strings.Replace(tag[0], "schema:", "", -1)
-				fieldName = strings.Replace(tag[0], "json:", "", -1)
+				fieldName = strings.Replace(fieldName, "json:", "", -1)
 				fieldName = strings.Replace(fieldName, ",", "", -1)
 				fieldName = strings.TrimSpace(strings.Replace(fieldName, "required", "", -1))
 

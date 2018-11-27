@@ -617,9 +617,9 @@ func (parser *Parser) parseMap(pkgName string, baseTypeSpec *ast.TypeSpec, prope
 	//		}
 	//	}
 	default:
-		fmt.Printf("--%+T--\r\n", baseTypeSpec)
-		fmt.Printf("--%+v--\r\n", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-		os.Exit(1)
+		//fmt.Printf("--%+T--\r\n", baseTypeSpec)
+		//fmt.Printf("--%+v--\r\n", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+		//os.Exit(1)
 	}
 }
 
